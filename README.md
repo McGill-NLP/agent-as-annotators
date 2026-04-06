@@ -1,17 +1,18 @@
+<div align="center">
+
 # Agent-as-Annotators (A3)
 
-**Structured Distillation of Web Agent Capabilities Enables Generalization**
+| [**💾 Code**](https://github.com/McGill-NLP/agent-as-annotators) | [**📄 Paper**](https://arxiv.org/abs/TODO) |
+| :--: | :--: |
+| [**🤗 Dataset**](https://huggingface.co/datasets/McGill-NLP/A3-Synth) | [**🤖 Model**](https://huggingface.co/McGill-NLP/A3-Qwen3.5-9B) |
+
+[**Structured Distillation of Web Agent Capabilities Enables Generalization**](https://arxiv.org/abs/TODO)
+
+*Xing Han Lu, Siva Reddy*
+
+</div>
 
 This repository contains the code for the A3 framework, which uses LLMs to systematically generate synthetic web agent training data by decomposing the annotation process into three roles: **Task Designer**, **Annotator**, and **Supervisor**.
-
-## Models & Data
-
-| Resource | Link |
-|----------|------|
-| A3-Qwen3.5-9B | [McGill-NLP/A3-Qwen3.5-9B](https://huggingface.co/McGill-NLP/A3-Qwen3.5-9B) |
-| A3-Qwen3.5-4B | [McGill-NLP/A3-Qwen3.5-4B](https://huggingface.co/McGill-NLP/A3-Qwen3.5-4B) |
-| A3-Qwen3.5-2B | [McGill-NLP/A3-Qwen3.5-2B](https://huggingface.co/McGill-NLP/A3-Qwen3.5-2B) |
-| A3-Synth (training data) | [McGill-NLP/A3-synth](https://huggingface.co/datasets/McGill-NLP/A3-synth) |
 
 ## Installation
 
