@@ -1,0 +1,37 @@
+# Data & results
+agentlab_results/
+checkpoints/
+trajectories/
+outputs/
+archive/
+data/
+
+# Logs
+slurm_logs/
+*.log
+
+# Environment
+.venv/
+.env
+.env.*
+__pycache__/
+*.pyc
+*.egg-info/
+
+# IDE
+.claude/
+CLAUDE.md
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
+
+# Misc
+*.bdic
+image.png
