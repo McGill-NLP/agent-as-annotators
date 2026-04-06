@@ -2,9 +2,9 @@
 
 # Agent-as-Annotators (A3)
 
-| [**💾 Code**](https://github.com/McGill-NLP/agent-as-annotators) | [**📄 Paper**](https://arxiv.org/abs/TODO) |
-| :--: | :--: |
-| [**🤗 Dataset**](https://huggingface.co/datasets/McGill-NLP/A3-Synth) | [**🤖 Model**](https://huggingface.co/McGill-NLP/A3-Qwen3.5-9B) |
+| [**💾 Code**](https://github.com/McGill-NLP/agent-as-annotators) | [**📄 Paper**](https://arxiv.org/abs/TODO) | [**🌐 Website**](https://agent-as-annotators.github.io) |
+| :--: | :--: | :--: |
+| [**🤗 Dataset**](https://huggingface.co/datasets/McGill-NLP/A3-Synth) | [**🤖 Model**](https://huggingface.co/McGill-NLP/A3-Qwen3.5-9B) | |
 
 [**Structured Distillation of Web Agent Capabilities Enables Generalization**](https://arxiv.org/abs/TODO)
 
