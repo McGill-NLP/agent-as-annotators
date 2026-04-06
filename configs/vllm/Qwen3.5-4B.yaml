@@ -1,0 +1,9 @@
+model: "Qwen/Qwen3.5-4B"
+port: 21552
+tensor-parallel-size: 1
+max-model-len: 65536
+max-num-seqs: 4
+gpu-memory-utilization: 0.98
+enforce-eager: true
+dtype: bfloat16
+reasoning-parser: qwen3

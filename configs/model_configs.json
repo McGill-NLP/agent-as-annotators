@@ -1,0 +1,130 @@
+{
+  "default_kwargs": {
+    "qwen3": {
+      "use_vision": false,
+      "use_ax_tree": true,
+      "max_total_tokens": 65536,
+      "max_prompt_tokens": 57344,
+      "max_new_tokens": 8192
+    },
+    "gemini": {
+      "use_vision": true,
+      "use_ax_tree": true,
+      "max_total_tokens": 65536,
+      "max_prompt_tokens": 57344,
+      "max_new_tokens": 8192,
+      "temperature": 1.0,
+      "thinking_level": "high"
+    },
+    "gpt-5": {
+      "use_vision": true,
+      "use_ax_tree": true,
+      "max_total_tokens": 65536,
+      "max_prompt_tokens": 57344,
+      "max_new_tokens": 8192,
+      "temperature": 1.0
+    }
+  },
+  "models": {
+    "Qwen3.5-9B": {
+      "shorthand": "qwen3.5-9b",
+      "default_kwargs": "qwen3",
+      "hosting": "vllm",
+      "port": 21551,
+      "config_path": "configs/vllm/Qwen3.5-9B.yaml",
+      "kwargs": {
+        "model_name": "Qwen/Qwen3.5-9B",
+        "temperature": 0.6
+      }
+    },
+    "Qwen3.5-4B": {
+      "shorthand": "qwen3.5-4b",
+      "default_kwargs": "qwen3",
+      "hosting": "vllm",
+      "port": 21552,
+      "config_path": "configs/vllm/Qwen3.5-4B.yaml",
+      "kwargs": {
+        "model_name": "Qwen/Qwen3.5-4B",
+        "temperature": 0.6
+      }
+    },
+    "Qwen3.5-2B": {
+      "shorthand": "qwen3.5-2b",
+      "default_kwargs": "qwen3",
+      "hosting": "vllm",
+      "port": 21553,
+      "config_path": "configs/vllm/Qwen3.5-2B.yaml",
+      "kwargs": {
+        "model_name": "Qwen/Qwen3.5-2B",
+        "temperature": 0.6
+      }
+    },
+    "A3-Qwen3.5-9B": {
+      "shorthand": "A3-qwen3.5-9b",
+      "default_kwargs": "qwen3",
+      "hosting": "vllm",
+      "port": 21561,
+      "config_path": "configs/vllm/Qwen3.5-9B.yaml",
+      "kwargs": {
+        "model_name": "McGill-NLP/A3-Qwen3.5-9B",
+        "temperature": 0.6
+      }
+    },
+    "A3-Qwen3.5-4B": {
+      "shorthand": "A3-qwen3.5-4b",
+      "default_kwargs": "qwen3",
+      "hosting": "vllm",
+      "port": 21562,
+      "config_path": "configs/vllm/Qwen3.5-4B.yaml",
+      "kwargs": {
+        "model_name": "McGill-NLP/A3-Qwen3.5-4B",
+        "temperature": 0.6
+      }
+    },
+    "A3-Qwen3.5-2B": {
+      "shorthand": "A3-qwen3.5-2b",
+      "default_kwargs": "qwen3",
+      "hosting": "vllm",
+      "port": 21563,
+      "config_path": "configs/vllm/Qwen3.5-2B.yaml",
+      "kwargs": {
+        "model_name": "McGill-NLP/A3-Qwen3.5-2B",
+        "temperature": 0.6
+      }
+    },
+    "gemini-3-pro": {
+      "shorthand": "gemini-3-pro",
+      "default_kwargs": "gemini",
+      "hosting": "gemini",
+      "kwargs": {
+        "model_name": "gemini-3-pro-preview",
+        "temperature": 1.0
+      }
+    },
+    "gemini-3-flash": {
+      "shorthand": "gemini-3-flash",
+      "default_kwargs": "gemini",
+      "hosting": "gemini",
+      "kwargs": {
+        "model_name": "gemini-3-flash-preview",
+        "temperature": 1.0
+      }
+    },
+    "gpt-5-mini": {
+      "shorthand": "gpt-5-mini",
+      "default_kwargs": "gpt-5",
+      "hosting": "openai",
+      "kwargs": {
+        "model_name": "gpt-5-mini"
+      }
+    },
+    "gpt-5": {
+      "shorthand": "gpt-5",
+      "default_kwargs": "gpt-5",
+      "hosting": "openai",
+      "kwargs": {
+        "model_name": "gpt-5"
+      }
+    }
+  }
+}

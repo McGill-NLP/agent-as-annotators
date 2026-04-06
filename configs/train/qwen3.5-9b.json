@@ -1,0 +1,18 @@
+{
+    "max_length": 16384,
+    "model_id": "Qwen/Qwen3.5-9B",
+    "run_name": "Web-Pro-Low",
+    "data_path": "data/train.jsonl",
+    "save_steps": 100,
+    "learning_rate": 1e-5,
+    "logging_steps": 10,
+    "num_train_epochs": 2,
+    "batch_size_per_gpu": 1,
+    "gradient_accumulation_steps": 4,
+    "max_grad_norm": 0.3,
+    "warmup_ratio": 0.03,
+    "weight_decay": 0,
+    "seed": 0,
+    "resume_from_checkpoint": "auto",
+    "gradient_checkpointing": false
+}
