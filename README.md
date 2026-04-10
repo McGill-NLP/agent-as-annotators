@@ -2,11 +2,11 @@
 
 # Agent-as-Annotators (A3)
 
-| [**💾 Code**](https://github.com/McGill-NLP/agent-as-annotators) | [**📄 Paper**](https://arxiv.org/abs/TODO) | [**🌐 Website**](https://agent-as-annotators.github.io) |
+| [**💾 Code**](https://github.com/McGill-NLP/agent-as-annotators) | [**📄 Paper**](https://arxiv.org/abs/2604.07776) | [**🌐 Website**](https://agent-as-annotators.github.io) |
 | :--: | :--: | :--: |
 | [**🤗 Dataset**](https://huggingface.co/datasets/McGill-NLP/A3-Synth) | [**🤖 Model**](https://huggingface.co/McGill-NLP/A3-Qwen3.5-9B) | [**📦 PyPI**](https://pypi.org/project/agent-as-annotators/) |
 
-[**Structured Distillation of Web Agent Capabilities Enables Generalization**](https://arxiv.org/abs/TODO)
+[**Structured Distillation of Web Agent Capabilities Enables Generalization**](https://arxiv.org/abs/2604.07776)
 
 *Xing Han Lù, Siva Reddy*
 
