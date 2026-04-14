@@ -5,6 +5,7 @@
 | [**💾 Code**](https://github.com/McGill-NLP/agent-as-annotators) | [**📄 Paper**](https://arxiv.org/abs/2604.07776) | [**🌐 Website**](https://agent-as-annotators.github.io) |
 | :--: | :--: | :--: |
 | [**🤗 Dataset**](https://huggingface.co/datasets/McGill-NLP/A3-Synth) | [**🤖 Models**](https://huggingface.co/collections/McGill-NLP/a3-agent-as-annotators-69d854ab5b1993b10efc3fba) | [**📦 PyPI**](https://pypi.org/project/agent-as-annotators/) |
+| [**📊 Trajectories**](https://huggingface.co/datasets/xhluca/a3-qwen-3.5-9b-trajectories) | | |
 
 [**Structured Distillation of Web Agent Capabilities Enables Generalization**](https://arxiv.org/abs/2604.07776)
 
