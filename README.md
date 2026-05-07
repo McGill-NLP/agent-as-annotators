@@ -53,9 +53,35 @@ python scripts/create_personas.py
 
 ### Step 2: Generate task intents (via exploration)
 ```bash
+# 2a. Run the exploration agent. Trajectories are saved as agentlab pickles
+# under $AGENTLAB_EXP_ROOT/<study_dir>/<task_dir>/step_*.pkl.gz.
 a3-explore
-python scripts/generate_task_intents.py
+
+# 2b. Extract chat messages from each step pickle into a parallel JSON tree
+# at outputs/chat_messages/<study_dir>/<task_dir>/step_*.json.
+python scripts/extract_chat_messages.py --find-latest <exploration-model>
+
+# 2c. For each trajectory, randomly sample N steps (default 3, skipping step 0),
+# append the TASK_INTENT_PROMPT_TEMPLATE as a final user turn, and write each
+# prompt as outputs/task_intents/prompts/<exploration_model>/task_<i>.step_<j>.json.
+python scripts/prepare_tasks_intents_prompts.py --find-latest <exploration-model>
+
+# 2d. Send each prepared prompt to the Task Designer LLM. Completions land in
+# outputs/task_intents/completions/<exploration_model>/<task_designer_model>/.
+python scripts/generate_task_intents.py \
+    --exploration-model <exploration-model> \
+    --model <task-designer-model>
 ```
+
+**What gets passed to the Task Designer:** the *full chat-message history* of a
+single exploration step (system prompt, goal, every prior assistant action and
+observation up to that step) with one extra user turn appended that contains
+`TASK_INTENT_PROMPT_TEMPLATE`. The step is selected by uniform random sampling
+of `step_*.json` files in the trajectory, after dropping `step_0` (the initial
+observation, which has no agent actions yet). The number of samples per
+trajectory is controlled by `--num_samples` (default `3`); the number of intents
+requested per prompt is `--num_intents` (default `2`). Sampling is seeded by
+`--seed` (default `42`) for reproducibility.
 
 ### Step 3: Create A3-Synth task configs
 ```bash
