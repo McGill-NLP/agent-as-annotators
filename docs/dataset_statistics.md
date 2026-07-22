@@ -15,6 +15,8 @@ statistics:
 ```bash
 mkdir -p data/A3-Synth/training
 curl --fail --location \
+  --header 'Cache-Control: no-cache, no-store, max-age=0' \
+  --header 'Pragma: no-cache' \
   --output data/A3-Synth/training/train.jsonl \
   https://huggingface.co/datasets/McGill-NLP/A3-Synth/resolve/d30e81302a74df6ec18d6361aab22a48ba4f32e7/training/train.jsonl
 echo 'dc1e105274a84b8336919aef0a680efe06852c5b00831b91933a705a06ceb487  data/A3-Synth/training/train.jsonl' \
@@ -96,6 +98,22 @@ Instruction lengths have mean 25.0, median 23, minimum 7, and maximum 80.
 | Distinct-2 | 22,496 | 55,653 | 0.4042 |
 | Distinct-3 | 33,206 | 53,331 | 0.6226 |
 | Distinct-4 | 37,467 | 51,009 | 0.7345 |
+
+The ten most frequent paths, before removing entry pages, have step counts
+928, 848, 790, 699, 603, 535, 512, 469, 450, and 345. After removing entry
+pages, the ten functional-page counts are 928, 535, 469, 345, 271, 263, 240,
+227, 213, and 186. The corresponding shares printed by the script are 5.7%,
+3.3%, 2.9%, 2.1%, 1.7%, 1.6%, 1.5%, 1.4%, 1.3%, and 1.1%.
+
+## Published-artifact validation
+
+On 2026-07-22, the pinned file was downloaded directly from the public
+Hugging Face URL into a new temporary directory using cache-bypass headers.
+Its size and SHA-256 were verified before analysis. The script reproduced all
+headline, per-site, instruction-length, Distinct-n, blank-step, and top-page
+values above. Two consecutive JSON runs over that fresh file were
+byte-for-byte identical. No pre-existing local dataset file or Hugging Face
+cache entry was used for this validation.
 
 ## Tests
 
