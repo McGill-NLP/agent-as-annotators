@@ -82,6 +82,18 @@ a3-train --config configs/train/qwen3.5-9b.json
 
 Training uses SFT with FSDP for multi-GPU parallelism. See `configs/train/` for hyperparameters and `configs/accelerate/` for FSDP configuration.
 
+## Reproducing Dataset Statistics
+
+The A3-Synth website-state coverage, instruction-diversity, and frequent-page
+statistics can be reproduced with a standalone standard-library script:
+
+```bash
+python3.12 scripts/analyze_a3_synth.py data/A3-Synth/training/train.jsonl
+```
+
+See [the methodology and data instructions](docs/dataset_statistics.md) for
+the exact definitions and a machine-readable output option.
+
 ## CLI Commands
 
 | Command | Description |

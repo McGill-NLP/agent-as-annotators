@@ -1,0 +1,6 @@
+[{"role":"system","content":"system"},{"role":"user","content":"## Goal: Buy red shoes\n# Observation\n(active tab): page\nURL: https://wa-shopping-xl-1.example.org/"},{"role":"assistant","content":"action"}]
+[{"role":"system","content":"system"},{"role":"user","content":[{"type":"text","text":"## Goal: Buy red shoes\n# Observation\n(active tab): page\nURL: https://wa-shopping-xl-2.example.org/catalog?color=red"}]},{"role":"assistant","content":"action"}]
+[{"role":"system","content":"system"},{"role":"user","content":"## Goal: Buy red shoes\n# Observation\n(active tab): page\nURL: https://wa-shopping-xl-1.example.org/catalog?color=blue"},{"role":"assistant","content":"action"}]
+[{"role":"system","content":"system"},{"role":"user","content":"## Goal: Find a map route\n# Observation\n(active tab): page\nURL: https://wa-openstreetmap-xl-1.example.org/directions?from=a"},{"role":"assistant","content":"action"}]
+[{"role":"system","content":"system"},{"role":"user","content":"## Goal: Find a map route\n# Observation\n(active tab): page\nURL: https://wa-openstreetmap-xl-2.example.org/directions?from=b#turn"},{"role":"assistant","content":"action"}]
+[{"role":"system","content":"system"},{"role":"user","content":"## Goal: Find a map route\n# Observation\n(active tab): page\nURL: about:blank"},{"role":"assistant","content":"action"}]
