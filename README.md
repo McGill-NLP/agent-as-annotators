@@ -82,6 +82,31 @@ a3-train --config configs/train/qwen3.5-9b.json
 
 Training uses SFT with FSDP for multi-GPU parallelism. See `configs/train/` for hyperparameters and `configs/accelerate/` for FSDP configuration.
 
+## Reproducing Paper Analyses
+
+Install the analysis dependency when working from a source checkout:
+
+```bash
+pip install -e '.[analysis]'
+```
+
+To reproduce the A3-Synth coverage and instruction-diversity statistics,
+download the [A3-Synth dataset](https://huggingface.co/datasets/McGill-NLP/A3-Synth)
+and run:
+
+```bash
+python scripts/analyze_a3_synth.py A3-Synth/training/train.jsonl
+```
+
+To reproduce the full-benchmark Wilson confidence intervals and exact paired
+McNemar tests, place the base and A3 AgentLab study directories under
+`agentlab_results/` and run:
+
+```bash
+python scripts/analyze_evaluation_significance.py \
+  --results-root agentlab_results
+```
+
 ## CLI Commands
 
 | Command | Description |

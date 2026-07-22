@@ -45,6 +45,9 @@ dependencies = [
 dev = [
     "black>=21.0",
 ]
+analysis = [
+    "scipy>=1.11",
+]
 docs = [
     # "sphinx>=4.0",
 ]
