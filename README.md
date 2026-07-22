@@ -94,6 +94,16 @@ python3.12 scripts/analyze_a3_synth.py data/A3-Synth/training/train.jsonl
 See [the methodology and data instructions](docs/dataset_statistics.md) for
 the exact definitions and a machine-readable output option.
 
+To reproduce the full-benchmark Wilson confidence intervals and exact paired
+McNemar tests, install the analysis dependency, place the base and A3 AgentLab
+study directories under `agentlab_results/`, and run:
+
+```bash
+pip install -e '.[analysis]'
+python scripts/analyze_evaluation_significance.py \
+  --results-root agentlab_results
+```
+
 ## CLI Commands
 
 | Command | Description |
