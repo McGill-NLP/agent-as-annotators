@@ -17,7 +17,12 @@ from browsergym.experiments.benchmark.base import Benchmark
 from browsergym.experiments.loop import EnvArgs
 import requests
 
-from agent_as_annotators.utils.a3_synth import print_last_step_output, LastStepOutputType
+from agent_as_annotators.utils.synth import print_last_step_output, LastStepOutputType
+from agent_as_annotators.utils.difficulty import (
+    difficulty_level_tally,
+    task_info_for_level,
+    validate_task_record,
+)
 
 Trajectory = list[Union[Action, StateInfo]]
 
@@ -283,6 +288,9 @@ class GenericWebSynthTask(AbstractBrowserTask):
         self.with_homepage_hint = with_homepage_hint
         self.use_screenshot = use_screenshot
         self.use_axtree = use_axtree
+        # Set in setup(), once a config has been picked. Stays None for pre-v2
+        # task records, which carry no difficulty_level.
+        self.difficulty_level: Optional[int] = None
 
         # one and only one of task id and template id must be provided
         if (task_id is None) == (intent_template_id is None):
@@ -327,6 +335,12 @@ class GenericWebSynthTask(AbstractBrowserTask):
                     f"Could not find any task config with task_id={intent_template_id}."
                 )
 
+        # Fail on a malformed difficulty_level here, before a browser is launched,
+        # rather than mid-episode. A config with no difficulty_level validates
+        # trivially, so this is a no-op for pre-v2 data.
+        for conf in task_configs:
+            validate_task_record(conf, source=str(config_path))
+
         self.task_configs = task_configs
 
     def setup(self, page: playwright.sync_api.Page) -> tuple[str, dict]:
@@ -335,6 +349,7 @@ class GenericWebSynthTask(AbstractBrowserTask):
 
         # pick a task at random
         self.config = self.random.choice(self.task_configs)
+        self.difficulty_level = validate_task_record(self.config)
 
         # hack: dynamically build a config file to read from
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as f:
@@ -379,7 +394,11 @@ class GenericWebSynthTask(AbstractBrowserTask):
 If you believe the task is impossible to complete, provide the answer "N/A".
 """
 
-        return goal, {}
+        # Surface the level so a run can be split by difficulty afterwards.
+        # The key is added ONLY when the record carries one, so a pre-v2 task
+        # still returns exactly `{}` and browsergym's `info["task_info"]` is
+        # what it was before this change.
+        return goal, task_info_for_level(self.difficulty_level)
 
     def cheat(self, page: playwright.sync_api.Page, chat_messages: list[str]) -> None:
         raise NotImplementedError
@@ -493,13 +512,33 @@ def make_env_args_list_from_fixed_seeds_parallel(
 
     return env_args_list
 
+def load_task_records(config_path):
+    """
+    Load the raw task records from a config file, without URL substitution.
+    """
+    return json.loads(Path(config_path).read_text())
+
+
 def get_task_ids(config_path):
     """
     Get the number of task ids from the config file.
     """
-    all_configs = json.loads(Path(config_path).read_text())
+    all_configs = load_task_records(config_path)
 
     return [conf["task_id"] for conf in all_configs]
+
+
+def get_difficulty_level_tally(config_path):
+    """
+    Validate the difficulty fields of every record in a config file and count
+    them per level. Raises on the first invalid record.
+
+    Records with no `difficulty_level` are counted under the `None` key, so a
+    pre-v2 config tallies entirely as unlevelled and passes.
+    """
+    return difficulty_level_tally(
+        load_task_records(config_path), source=str(config_path)
+    )
 
 
 def list_config_files(anchor="agent_as_annotators.configs"):

@@ -8,13 +8,21 @@ from browsergym.experiments.benchmark.configs import (
 )
 
 from agent_as_annotators.utils import shorthand_to_model
+from agent_as_annotators.utils.difficulty import (
+    DIFFICULTY_LEVELS,
+    EXPLORATION_MAX_STEPS,
+    STEP_BAND_WIDTH,
+)
 
 # Ensure AGENTLAB_EXP_ROOT is absolute (required for ray workers which run in a different cwd)
 if "AGENTLAB_EXP_ROOT" in os.environ:
     os.environ["AGENTLAB_EXP_ROOT"] = str(Path(os.environ["AGENTLAB_EXP_ROOT"]).resolve())
 
 def get_exploration_benchmark(
-    reset_instance=True, config_name="exploration.tasks.json", model_name="Qwen/Qwen3-32B"
+    reset_instance=True,
+    config_name="exploration.tasks.json",
+    model_name="Qwen/Qwen3-32B",
+    max_steps=EXPLORATION_MAX_STEPS,
 ):
     os.environ["EXPLORATION_CONFIG_NAME"] = config_name
     os.environ["EXPLORATION_MODEL_NAME"] = model_name.replace("/", "_")
@@ -38,7 +46,7 @@ def get_exploration_benchmark(
         backends=[],
         env_args_list=make_env_args_list_from_fixed_seeds_parallel(
             task_list=[f"exploration.{i}" for i in task_ids],
-            max_steps=20,
+            max_steps=max_steps,
             fixed_seeds=[0],
         ),
         task_metadata=None,
@@ -116,13 +124,31 @@ def main():
         action="store_true",
         help="Disable the instance reset for the exploration benchmark",
     )
-    
+    parser.add_argument(
+        "--max-steps",
+        type=int,
+        default=EXPLORATION_MAX_STEPS,
+        help=(
+            "Exploration step budget. The default is sliced into "
+            f"{len(DIFFICULTY_LEVELS)} difficulty bands of {STEP_BAND_WIDTH} steps; "
+            "lowering it leaves the deepest bands unfillable"
+        ),
+    )
+
     args = parser.parse_args()
     model_name = args.models[0]
-    
+
+    if args.max_steps != EXPLORATION_MAX_STEPS:
+        logging.warning(
+            f"Exploring with max_steps={args.max_steps}, not the Exploration v2 budget of "
+            f"{EXPLORATION_MAX_STEPS}. Difficulty bands are {STEP_BAND_WIDTH} steps wide, so "
+            f"only L1-L{max(1, args.max_steps // STEP_BAND_WIDTH)} will be fillable from these "
+            "trajectories."
+        )
+
     # 1. select benchmark:
     if args.benchmark == "exploration":
-        benchmark = get_exploration_benchmark(config_name=args.config_name, model_name=shorthand_to_model(model_name), reset_instance=not args.disable_reset)
+        benchmark = get_exploration_benchmark(config_name=args.config_name, model_name=shorthand_to_model(model_name), reset_instance=not args.disable_reset, max_steps=args.max_steps)
     else:
         raise ValueError(f"Invalid benchmark: {args.benchmark}")
     
