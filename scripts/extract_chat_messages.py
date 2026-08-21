@@ -8,6 +8,7 @@ import gzip
 import orjson
 import argparse
 import re
+from collections import Counter
 from pathlib import Path
 from tqdm import tqdm
 
@@ -56,6 +57,32 @@ def find_latest_results_dir(base_dir, agent_name, benchmark="exploration"):
     return latest
 
 
+def to_openai_messages(chat_messages):
+    """Normalise ``agent_info["chat_messages"]`` to a list of OpenAI-format dicts.
+
+    Different scaffolds store different types here, and only one of them has
+    ``.to_openai()``:
+
+      - GenericAgent stores an agentlab ``Discussion``  -> has ``.to_openai()``
+      - a scaffold that builds messages itself may store a PLAIN LIST of dicts
+        -> does not
+
+    Calling ``.to_openai()`` unconditionally raises ``AttributeError`` for every step of
+    the latter. Combined with a broad ``except Exception: continue`` that would make the
+    run write zero step files and still exit 0, so the next stage reports "0 trajectories"
+    as if the exploration itself had been empty. Dispatch on the type instead.
+    """
+    if hasattr(chat_messages, "to_openai"):
+        return chat_messages.to_openai()
+    if isinstance(chat_messages, list):
+        # Already OpenAI-shaped; copy so nothing downstream mutates the unpickled object.
+        return list(chat_messages)
+    raise TypeError(
+        f"unsupported chat_messages type {type(chat_messages).__name__}: "
+        "expected an object with .to_openai() or a list of message dicts"
+    )
+
+
 def extract_chat_messages(results_dir, output_dir, force_reprocess=False):
     """Extract chat messages from all pickle files in the results directory"""
     results_path = Path(results_dir)
@@ -90,6 +117,10 @@ def extract_chat_messages(results_dir, output_dir, force_reprocess=False):
     # Process each pickle file with progress bar
     processed_count = 0
     skipped_count = 0
+    errored_count = 0
+    empty_message_steps = 0
+    failed_trajectories = set()
+    per_trajectory_expected = Counter(subdir.name for subdir, _ in all_pickle_files)
 
     for subdir, pickle_file in tqdm(all_pickle_files, desc="Extracting messages"):
         # Create corresponding output directory
@@ -118,12 +149,20 @@ def extract_chat_messages(results_dir, output_dir, force_reprocess=False):
                 chat_model_args = {}
                 goal = ""
             else:
-                messages = data.agent_info["chat_messages"].to_openai()
+                messages = to_openai_messages(data.agent_info["chat_messages"])
                 chat_model_args = data.agent_info.extra_info.get("chat_model_args", {})
                 goal = data.obs.get("goal", "")
 
-        except Exception as e:
-            tqdm.write(f"Error processing {pickle_file_path}: {e}")
+        except (OSError, EOFError, gzip.BadGzipFile, pickle.UnpicklingError) as e:
+            # NARROW on purpose. A truncated or unreadable pickle is an expected,
+            # tolerable per-file fault -- a run killed mid-write leaves exactly this.
+            # Everything else (AttributeError, TypeError, KeyError) means our
+            # ASSUMPTIONS about the data are wrong, and those must not be swallowed
+            # per-file: a loop that tolerates every error and then reports success is
+            # how "0 files written, exit 0" gets mistaken for "the run was empty".
+            tqdm.write(f"Error processing {pickle_file_path}: {type(e).__name__}: {e}")
+            errored_count += 1
+            failed_trajectories.add(subdir.name)
             continue
 
         pickle_file_path = Path(pickle_file).resolve()
@@ -146,10 +185,57 @@ def extract_chat_messages(results_dir, output_dir, force_reprocess=False):
             f.write(orjson.dumps(extracted).decode())
 
         processed_count += 1
+        if not messages:
+            empty_message_steps += 1
+
+    # -- coverage report ----------------------------------------------------------------
+    # Count what is ACTUALLY on disk per trajectory, including files this invocation
+    # skipped as already-current: deriving coverage from processed_count alone would
+    # report a fully-cached re-run as zero coverage.
+    per_trajectory_written = {
+        name: (
+            len(list((output_subdir / name).glob("step_*.json")))
+            if (output_subdir / name).exists()
+            else 0
+        )
+        for name in per_trajectory_expected
+    }
+    empty_trajectories = sorted(
+        name for name, expected in per_trajectory_expected.items()
+        if expected > 0 and per_trajectory_written.get(name, 0) == 0
+    )
 
     print(f"Processed {processed_count} pickle files")
     print(f"Skipped {skipped_count} files (already up-to-date)")
+    print(f"Errored {errored_count} files")
+    print(
+        f"Trajectories: {len(per_trajectory_expected)} seen, "
+        f"{len(per_trajectory_expected) - len(empty_trajectories)} with >=1 step file, "
+        f"{len(empty_trajectories)} EMPTY"
+    )
+    if empty_message_steps:
+        # Expected and benign: the terminal step of a trajectory records no agent call,
+        # so it carries no chat_messages. Reported because the next stage can sample it.
+        print(
+            f"Note: {empty_message_steps} extracted step(s) carry no chat messages "
+            "(normally the terminal step of each trajectory, which has no agent call). "
+            "prepare_tasks_intents_prompts.py can sample these; see --skip-empty-steps."
+        )
     print(f"Chat messages saved to {output_subdir}")
+
+    # An extraction that wrote nothing at all is a failure, not an empty result. Without
+    # this the script exits 0 and the next stage reports "0 trajectories" as though the
+    # exploration run itself had produced nothing.
+    if all_pickle_files and processed_count == 0 and skipped_count == 0:
+        raise SystemExit(
+            f"FAIL: extracted 0 of {len(all_pickle_files)} pickle files "
+            f"({errored_count} errored). Nothing was written to {output_subdir}."
+        )
+    if empty_trajectories:
+        print(
+            f"WARNING: {len(empty_trajectories)} trajectory/ies produced no step files at "
+            f"all, e.g. {empty_trajectories[:3]}"
+        )
 
 
 def main():

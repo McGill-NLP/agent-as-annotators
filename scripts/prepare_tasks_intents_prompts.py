@@ -98,7 +98,7 @@ def get_trajectory_dirs(exp_dir):
 def get_step_number(step_file):
     return int(step_file.stem.split('_')[1].split('.')[0])
 
-def main(exp_dir, output_dir, num_samples=2, seed=42, num_intents=2):
+def main(exp_dir, output_dir, num_samples=2, seed=42, num_intents=2, skip_empty_steps=False):
     exp_dir = Path(exp_dir)
     output_dir = Path(output_dir)
     trajectory_dirs = get_trajectory_dirs(exp_dir)
@@ -121,12 +121,33 @@ def main(exp_dir, output_dir, num_samples=2, seed=42, num_intents=2):
     random.seed(seed)  # For reproducibility
 
     fails = 0
+    written = 0
+    empty_conversation_prompts = 0
+    dropped_empty_steps = 0
     for traj_dir in tqdm(trajectory_dirs, desc="Processing trajectories"):
         traj_info = parse_trajectory_dir_name(traj_dir)
         step_files = list(traj_dir.glob("step_*.json"))
         step_files.sort(key=get_step_number)
         step_files = step_files[1:]  # remove step 0
-        
+
+        if skip_empty_steps:
+            # A trajectory's terminal step records no agent call, so it carries no
+            # chat_messages and extracts to `messages: []`. Sampling it produces a prompt
+            # whose only turn is the appended instruction -- the Task Designer is asked to
+            # write tasks "based on the conversation above" with no conversation above, so
+            # the resulting intents are ungrounded in the site.
+            #
+            # OFF BY DEFAULT so that the released A3-Synth generation reproduces exactly;
+            # in that run 381 of 4497 prompts (8.5%) were of this kind. Turn it on for new
+            # collections.
+            keep = []
+            for f in step_files:
+                with open(f, 'rb') as fh:
+                    if orjson.loads(fh.read()).get('messages'):
+                        keep.append(f)
+            dropped_empty_steps += len(step_files) - len(keep)
+            step_files = keep
+
         if len(step_files) == 0:
             fails += 1
             print(f"No step files found in {traj_dir}, skipping.")
@@ -161,17 +182,40 @@ def main(exp_dir, output_dir, num_samples=2, seed=42, num_intents=2):
                 )
             }
 
+            if not step_data['messages']:
+                empty_conversation_prompts += 1
+
             step_data['messages'].append(user_message)
 
             # add to messages
 
             with open(save_path, 'w') as f:
                 f.write(orjson.dumps(step_data).decode('utf-8'))
-        
+            written += 1
+
     if fails > 0:
         print(f"Failed to process {fails} trajectories")
 
+    print(f"Prompt files written: {written}")
+    if dropped_empty_steps:
+        print(f"Skipped {dropped_empty_steps} message-less step(s) (--skip-empty-steps)")
+    if empty_conversation_prompts:
+        pct = 100.0 * empty_conversation_prompts / written if written else 0.0
+        print(
+            f"WARNING: {empty_conversation_prompts} of {written} prompts ({pct:.1f}%) "
+            "contain NO conversation -- only the appended task-generation instruction. "
+            "These come from a trajectory's terminal step, which records no agent call. "
+            "The intents generated from them are not grounded in any observed page. "
+            "Re-run with --skip-empty-steps to exclude them."
+        )
+
     print(f"Prepared prompts saved in {output_dir}")
+    return {
+        "written": written,
+        "empty_conversation_prompts": empty_conversation_prompts,
+        "dropped_empty_steps": dropped_empty_steps,
+        "failed_trajectories": fails,
+    }
 
 if __name__ == "__main__":
     this_file = Path(__file__)
@@ -229,6 +273,14 @@ if __name__ == "__main__":
         help="Number of intents to request from the model per prompt",
     )
     parser.add_argument(
+        "--skip-empty-steps",
+        action="store_true",
+        help="Exclude steps that carry no chat messages (a trajectory's terminal step) "
+             "before sampling. OFF by default so the released A3-Synth generation "
+             "reproduces exactly; in that run 381/4497 prompts (8.5%%) had no "
+             "conversation at all. Recommended ON for new collections.",
+    )
+    parser.add_argument(
         "--seed",
         type=int,
         default=42,
@@ -264,4 +316,5 @@ if __name__ == "__main__":
     output_dir = Path(args.output_dir_base) / exploration_model_dirname
     print(f"Output directory: '{output_dir}'")
 
-    main(exp_dir, output_dir, num_samples=args.num_samples, seed=args.seed, num_intents=args.num_intents)
+    main(exp_dir, output_dir, num_samples=args.num_samples, seed=args.seed,
+         num_intents=args.num_intents, skip_empty_steps=args.skip_empty_steps)
