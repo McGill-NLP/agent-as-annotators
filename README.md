@@ -54,20 +54,26 @@ python scripts/create_personas.py
 
 ### Step 2: Generate task intents (via exploration)
 ```bash
-# 2a. Run the exploration agent. Trajectories are saved as agentlab pickles
+# 2a. Build the exploration.tasks.json config that a3-explore consumes.
+# One task per (persona, site) pair, written to
+# agent_as_annotators/configs/<exploration_model>/exploration.tasks.json so
+# that a3-explore picks it up via importlib.resources.
+python scripts/generate_exploration_tasks.py -m <exploration-model>
+
+# 2b. Run the exploration agent. Trajectories are saved as agentlab pickles
 # under $AGENTLAB_EXP_ROOT/<study_dir>/<task_dir>/step_*.pkl.gz.
 a3-explore
 
-# 2b. Extract chat messages from each step pickle into a parallel JSON tree
+# 2c. Extract chat messages from each step pickle into a parallel JSON tree
 # at outputs/chat_messages/<study_dir>/<task_dir>/step_*.json.
 python scripts/extract_chat_messages.py --find-latest <exploration-model>
 
-# 2c. For each trajectory, randomly sample N steps (default 3, skipping step 0),
+# 2d. For each trajectory, randomly sample N steps (default 3, skipping step 0),
 # append the TASK_INTENT_PROMPT_TEMPLATE as a final user turn, and write each
 # prompt as outputs/task_intents/prompts/<exploration_model>/task_<i>.step_<j>.json.
 python scripts/prepare_tasks_intents_prompts.py --find-latest <exploration-model>
 
-# 2d. Send each prepared prompt to the Task Designer LLM. Completions land in
+# 2e. Send each prepared prompt to the Task Designer LLM. Completions land in
 # outputs/task_intents/completions/<exploration_model>/<task_designer_model>/.
 python scripts/generate_task_intents.py \
     --exploration-model <exploration-model> \
