@@ -113,8 +113,12 @@ if __name__ == "__main__":
         "-m",
         "--model",
         type=str,
-        default="qwen3-vl-32b-thinking",
+        required=True,
         choices=list(shorthands_to_configs.keys()),
+        # No default on purpose. The internal repo's default ("qwen3-vl-32b-thinking")
+        # is not a shorthand in the released configs/model_configs.json, so running this
+        # with no -m crashed on a bare KeyError. Requiring the flag also stops an
+        # accidental no-arg run from overwriting a shipped exploration.tasks.json.
         help="Exploration model shorthand (used to namespace the output directory)",
     )
     parser.add_argument(
