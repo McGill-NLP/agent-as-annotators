@@ -418,7 +418,19 @@ class Step:
         # agentlab's Discussion exposes to_openai(); StrategyAgent stores a plain list that
         # is already in OpenAI format.
         cm = self.info.agent_info.chat_messages
-        return cm.to_openai() if hasattr(cm, "to_openai") else cm
+        if hasattr(cm, "to_openai"):
+            return cm.to_openai()
+        # StrategyAgent stores only the PROMPT (system + user). RFT generation requires
+        # [system, user, assistant] and silently skips 2-message steps, yielding an EMPTY
+        # train file from a full conversion. The completion lives in raw_content -- the
+        # untouched text including its <thought> block, i.e. the actual training target.
+        msgs = list(cm or [])
+        if msgs and msgs[-1].get("role") != "assistant":
+            ei = getattr(self.info.agent_info, "extra_info", None) or {}
+            raw = ei.get("raw_content")
+            if raw:
+                msgs = msgs + [{"role": "assistant", "content": raw}]
+        return msgs
 
     @property
     def cost(self):
