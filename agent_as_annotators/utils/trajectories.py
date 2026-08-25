@@ -297,11 +297,18 @@ class Trajectory:
 
     @property
     def model_name(self):
-        return self.exp_args.agent_args.chat_model_args.model_name
+        # GenericAgentArgs nests the model under chat_model_args; StrategyAgentArgs carries
+        # model_name directly. Without this fallback every StrategyAgent-collected trajectory
+        # raises AttributeError and the conversion aborts wholesale.
+        a = self.exp_args.agent_args
+        cma = getattr(a, "chat_model_args", None)
+        return cma.model_name if cma is not None else getattr(a, "model_name", None)
     
     @property
     def model_args(self):
-        return self.exp_args.agent_args.chat_model_args
+        a = self.exp_args.agent_args
+        cma = getattr(a, "chat_model_args", None)
+        return cma if cma is not None else a   # StrategyAgentArgs is its own model-args carrier
 
 
     @property
@@ -318,7 +325,9 @@ class Trajectory:
 
     @property
     def flags(self):
-        return self.exp_args.agent_args.flags.asdict()
+        # StrategyAgentArgs has no `flags` dataclass; return {} rather than raising.
+        flags = getattr(self.exp_args.agent_args, "flags", None)
+        return flags.asdict() if flags is not None else {}
 
     @property
     def exp_name(self):
@@ -406,7 +415,10 @@ class Step:
         if not self.has_agent_info():
             return []
         
-        return self.info.agent_info.chat_messages.to_openai()
+        # agentlab's Discussion exposes to_openai(); StrategyAgent stores a plain list that
+        # is already in OpenAI format.
+        cm = self.info.agent_info.chat_messages
+        return cm.to_openai() if hasattr(cm, "to_openai") else cm
 
     @property
     def cost(self):
