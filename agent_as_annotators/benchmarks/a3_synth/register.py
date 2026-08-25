@@ -10,9 +10,15 @@ import nltk
 from browsergym.core.task import AbstractBrowserTask
 from browsergym.core.registration import frozen_partial
 
-from . import GenericWebSynthTask, get_task_ids, get_a3_synth_config_path
+from . import (
+    GenericWebSynthTask,
+    get_a3_synth_config_path,
+    get_difficulty_level_tally,
+    get_task_ids,
+)
 from .env import BrowserEnvWebSynth
-from agent_as_annotators.utils.a3_synth import print_last_step_output, LastStepOutputType
+from agent_as_annotators.utils.synth import print_last_step_output, LastStepOutputType
+from agent_as_annotators.utils.difficulty import format_difficulty_level_tally
 logger = logging.getLogger(__name__)
 
 
@@ -94,3 +100,13 @@ for task_id in get_task_ids(config_path):
 
 logger.info(f"Registered {len(ALL_WEBSYNTH_GYM_IDS)} WebSynth tasks")
 logger.info(f"Sample Task IDs: {ALL_WEBSYNTH_GYM_IDS[0:200:20]}")
+
+# Report the per-level tally at registration. An unfilled band shows up here as
+# an explicit zero rather than having to be inferred from a missing row later --
+# L5 (steps 40-49) only fills when explorations actually run the full budget, so
+# silent under-coverage is the failure mode worth making visible up front.
+DIFFICULTY_LEVEL_TALLY = get_difficulty_level_tally(config_path)
+logger.info(
+    f"Difficulty levels in {config_path}: "
+    f"{format_difficulty_level_tally(DIFFICULTY_LEVEL_TALLY)}"
+)

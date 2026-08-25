@@ -134,6 +134,15 @@ def main():
         help="Select the config name to use for the A3-Synth benchmark",
     )
     parser.add_argument(
+        "--no-reproducibility-mode",
+        action="store_true",
+        help=(
+            "Do NOT force temperature=0.0/top_p=1.0. Required for training-data "
+            "collection: the A3S reference collection ran at temperature 1.0 "
+            "(measured from its exp_args.pkl). Default off = unchanged behaviour."
+        ),
+    )
+    parser.add_argument(
         "--disable-reset",
         action="store_true",
         help="Disable the instance reset for the A3-Synth benchmark",
@@ -208,11 +217,32 @@ def main():
     parallel_backend = args.parallel
     n_jobs = args.n_jobs
     
-    reproducibility_mode = True
+    # set_reproducibility_mode() forces temperature=0.0, top_p=1.0. That is correct for a
+    # reproducible EVAL and wrong for a training-data COLLECTION, which is what this CLI is
+    # for: greedy decoding collapses the trajectory diversity the collection exists to
+    # produce. Note cli/eval.py already sets this False, so the two paths disagreed and the
+    # collection path was the one forcing greedy.
+    #
+    # Measured, not assumed: the A3S2 collection ran at temperature 1.0 / top_p 1.0, recorded
+    # in its own exp_args.pkl -- which agentlab writes AFTER this call site, so 1.0 there
+    # proves its launcher never applied reproducibility mode. A collection run through this
+    # CLI would differ from that reference by a decoding change, with nothing in the output
+    # saying so.
+    #
+    # Default stays True: unchanged behaviour for every existing caller.
+    reproducibility_mode = not getattr(args, "no_reproducibility_mode", False)
     strict_reproducibility = False
-    
+
     if reproducibility_mode:
         [a.set_reproducibility_mode() for a in agent_args]
+        print("Reproducibility mode ON -> temperature forced to 0.0")
+    else:
+        print(
+            "Reproducibility mode OFF -> sampling as configured: "
+            + ", ".join(
+                f"{a.agent_name} temp={a.temperature} top_p={a.top_p}" for a in agent_args
+            )
+        )
     
     if args.relaunch is not None:
         print("Relaunching study from directory containing:", args.relaunch)
