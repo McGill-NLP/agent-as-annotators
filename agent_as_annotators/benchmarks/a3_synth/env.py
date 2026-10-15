@@ -4,7 +4,7 @@ from typing import Any
 
 from browsergym.core.env import BrowserEnv
 
-from agent_as_annotators.utils.a3_synth import print_last_step_output, LastStepOutputType
+from agent_as_annotators.utils.synth import print_last_step_output, LastStepOutputType
 logger = logging.getLogger(__name__)
 
 
