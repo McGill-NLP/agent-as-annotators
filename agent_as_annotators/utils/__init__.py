@@ -67,11 +67,19 @@ def _apply_default_kwargs(model_config: dict, defaults: dict[str, dict]) -> dict
     return merged_config # e.g., {"default_kwargs": "qwen-vl-sft-short", "kwargs": {"temperature": 0.7}}
 
 
-def load_all_model_configs(path: Path | str = "configs/model_configs.json") -> dict:
+def load_all_model_configs(path: Path | str | None = None) -> dict:
     """
     This function loads all model configs from the given path and give a shorthand to model config mapping.
     """
+    if path is None:
+        path = os.environ.get("A3_MODEL_CONFIGS") or (
+            Path(__file__).resolve().parents[2] / "configs" / "model_configs.json"
+        )
     path = Path(path)
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"Model registry not found: {path}. Set A3_MODEL_CONFIGS to your model_configs.json."
+        )
     with open(path, "r") as f:
         model_configs = json.load(f)
     shorthands_to_configs = {}

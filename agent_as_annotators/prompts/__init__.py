@@ -23,6 +23,51 @@ TASK_EXPLORATION_PROMPT_TEMPLATE_WITH_MIN_STEPS = """
     You have been given the following persona:
     {persona}
 """
+EXPLORATION_STRATEGY_INSTRUCTIONS = """
+    You are exploring this website to build a map of what it can do. You are not solving a task:
+    there is no goal to satisfy, nothing to get right, and no credit for finishing early. You are
+    done only when you have covered as much of the site as you can within your step budget.
+
+    Judge every step by how much NEW ground it covers, not by how much progress it makes:
+
+    (1) Breadth of pages. Prefer a page you have not seen over one you have. When a section has
+        several sub-pages, visit the ones you have skipped rather than re-reading the landing page.
+    (2) Feature surfaces. Each site has distinct areas of functionality -- search, filtering and
+        sorting, listings and their detail views, creation and editing forms, settings and
+        preferences, account pages, dashboards, history. Touch surfaces you have not touched yet.
+    (3) Distinct UI affordances. Exercise different kinds of control, not the same kind repeatedly:
+        text inputs, dropdowns and selects, checkboxes and toggles, tabs, pagination, sort headers,
+        modals, expandable panels, date and range pickers.
+    (4) Depth over repetition. Going one level deeper into a section you have only glanced at is
+        worth more than another pass over a section you already know. If a page reveals a control
+        you do not understand, use it and observe what changes.
+    (5) Recoverable states only. Do not delete, purchase, or submit anything you cannot undo. Fill
+        a form to see its fields and its validation without committing the result.
+
+    Avoid the two ways this goes wrong: looping between the same few pages, and drilling so far into
+    one corner that the rest of the site goes unseen. If you find yourself back where you were,
+    treat that as a signal to jump to an untouched surface.
+
+    In your strategy, keep an explicit account of which surfaces you have already covered and name
+    the next uncovered one you intend to reach. Recording coverage is what makes the later part of
+    the trajectory more informed than the earlier part.
+
+    When you have covered what you can, reply to the user with exactly this message:
+    "I am done exploring the websites."
+"""
+
+TASK_EXPLORATION_PROMPT_TEMPLATE_COVERAGE = """
+    You have been instructed to explore the websites in order to familiarize yourself
+    with their content and functionalities. When you are done, you should reply to the user with a message
+    indicating that you are done exploring the websites: "I am done exploring the websites." Make sure to
+    explore for at least {min_steps} steps before you stop.
+
+    {strategy_instructions}
+
+    You have been given the following persona:
+    {persona}
+"""
+
 WEBARENA_ANNOTATOR_INSTRUCTIONS = """
     (1) The intent should be abstract and high-level, implying that the task cannot be fulfilled with
     merely one or two actions. As an example, instead of "click the science subreddit", we
@@ -95,3 +140,19 @@ TASK_CREATION_PROMPT_TEMPLATE = format_prompt(TASK_CREATION_PROMPT_TEMPLATE)
 TASK_EXAMPLES = format_prompt(TASK_EXAMPLES)
 TASK_INTENT_PROMPT_TEMPLATE = format_prompt(TASK_INTENT_PROMPT_TEMPLATE)
 TASK_EXPLORATION_PROMPT_TEMPLATE_WITH_MIN_STEPS = format_prompt(TASK_EXPLORATION_PROMPT_TEMPLATE_WITH_MIN_STEPS)
+EXPLORATION_STRATEGY_INSTRUCTIONS = format_prompt(EXPLORATION_STRATEGY_INSTRUCTIONS)
+TASK_EXPLORATION_PROMPT_TEMPLATE_COVERAGE = format_prompt(TASK_EXPLORATION_PROMPT_TEMPLATE_COVERAGE)
+
+# The stop string the `string_match` evaluator terminates the exploration episode
+# on. Every exploration template must contain it verbatim; changing it silently
+# would leave episodes running to the step cap with no way to stop legitimately.
+EXPLORATION_STOP_MESSAGE = "I am done exploring the websites."
+
+
+def build_exploration_prompt(persona: str, min_steps: int) -> str:
+    """Build the Exploration v2 goal: coverage framing + persona + step floor."""
+    return TASK_EXPLORATION_PROMPT_TEMPLATE_COVERAGE.format(
+        min_steps=min_steps,
+        strategy_instructions=EXPLORATION_STRATEGY_INSTRUCTIONS,
+        persona=persona,
+    )
