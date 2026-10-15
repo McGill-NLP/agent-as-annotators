@@ -2,7 +2,10 @@
 
 *(Written from the A3S5 run in the private llm-annotators repo; script names there are given in parentheses. The traps are properties of this pipeline, not of that one run.)*
 
-End-to-end, with the traps that actually bite. Every command here has been run.
+This is a historical recipe from that private checkout, not a runnable recipe
+for this public repository: the scripts below and StrategyAgent are not shipped
+here. The public exploration CLI still uses GenericAgent. The conversion fixes
+described below are available here for externally collected trajectories.
 
 ## TL;DR
 

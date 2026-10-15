@@ -166,9 +166,7 @@ def main():
     
     logging.getLogger().setLevel(logging.INFO)
     
-    this_file = Path(__file__)
-    model_configs_path = this_file.parent / "configs" / "model_configs.json"
-    shorthands_to_configs = agent_as_annotators.utils.load_all_model_configs(model_configs_path)
+    shorthands_to_configs = agent_as_annotators.utils.load_all_model_configs()
     
     parser = argparse.ArgumentParser(
         description="Run a generic agent on a benchmark",
@@ -206,7 +204,7 @@ def main():
         "-m",
         "--models",
         choices=list(shorthands_to_configs.keys()),
-        default=["qwen3-vl-32b-thinking"],
+        default=["qwen3.5-9b"],
         help="Select the model to use",
         nargs="+",
     )

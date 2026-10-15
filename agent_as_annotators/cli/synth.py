@@ -72,9 +72,7 @@ def main():
     import agent_as_annotators.utils as lau
     import agent_as_annotators.modeling as lam
     
-    this_file = Path(__file__)
-    model_configs_path = this_file.parent / "configs" / "model_configs.json"
-    shorthands_to_configs = lau.load_all_model_configs(model_configs_path)
+    shorthands_to_configs = lau.load_all_model_configs()
     
     logging.getLogger().setLevel(logging.INFO)
     
@@ -104,7 +102,7 @@ def main():
         "-m",
         "--models",
         choices=list(shorthands_to_configs.keys()),
-        default=["qwen3-vl-32b-thinking"],
+        default=["qwen3.5-9b"],
         help="Select the model to use (at least one)",
         nargs="+",
     )
